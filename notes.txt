@@ -1,0 +1,63 @@
+
+opcodes
+    note: no unary, increment, decrement
+    arthithmetic: + - * / %
+    bitwise: l r & | ^ ~
+    "<<" is l, ">>" is r
+    all are atoms or binary operators, so recursive compilation to a forth-like?
+    order of ops:
+        ~
+        * / %
+        + -
+        << >>
+        &
+        ^
+        |
+
+final console interface:
+    #hashtag (exact) -> searches identica for tunes
+    @username (exact) -> parses identica feed for tunes
+    _1234... -> plays track from memory
+    expression -> compiles and plays expression
+    [else] -> searches greedily for a valid expression; if not found, ignores
+
+called "bytebeat". related to softsynths, demoscene. other buzzwords: Algostep,
+googlecore, "shortcode compos", 
+
+bytetros?
+
+original (to me):
+echo "main(i){for(i=0;;i++)putchar((i*(i>>8|i>>9)&46&i>>8)^(i&i>>13|i>>6));}" | gcc -x c - && ./a.out | aplay
+
+from http://countercomplex.blogspot.de/2011/10/algorithmic-symphonies-from-one-line-of.html
+
+    main(t){for(t=0;;t++)putchar(t*(((t>>12)|(t>>8))&(63&(t>>4))));} 
+
+projects:
+    http://wurstcaptures.untergrund.net/music/
+    http://shackspace.de/?p=2509 (The Noiseplug)
+    http://hackaday.com/2011/11/01/annoy-your-sound-guy-even-more/ (Noiseplug HaD)
+    https://github.com/erlehmann/libglitch
+    opcodes: http://paste.ubuntu.com/733764/
+    http://0xa.kuri.mu/2011/10/09/bitop-videos/
+    GlitchMachine: http://www.umlautllama.com/w2/?action=view&page=GlitchMachine
+
+listings:
+    http://shackspace.de/wiki/doku.php?id=project:algorithmicsoundscapes
+    http://pelulamu.net/countercomplex/music_formula_collection.txt
+
+commentary, other:
+    http://countercomplex.blogspot.de/2011/10/algorithmic-symphonies-from-one-line-of.html
+    http://countercomplex.blogspot.de/2011/10/some-deep-analysis-of-one-line-music.html
+    http://countercomplex.blogspot.de/2011/06/16-byte-frontier-extreme-results-from.html
+    http://canonical.org/~kragen/bytebeat/
+    http://pouet.net/topic.php?which=8357
+    "Discovering novel computer music techniques by exploring the space of short computer programs"
+        http://arxiv.org/abs/1112.1368
+    http://royal-paw.com/2012/01/bytebeats-in-c-and-python-generative-symphonies-from-extremely-small-programs/
+    http://www.metafilter.com/111959/Todays-formulaic-music
+
+similar:
+    http://yaxu.org/haskell-hack/
+    http://sunsite.univie.ac.at/Mozart/dice/
+    http://music.columbia.edu/~douglas/strange_things/?p=78
