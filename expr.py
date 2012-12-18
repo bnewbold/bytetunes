@@ -45,7 +45,10 @@ def car(l):
 def cdr(l):
     return l[1:]
 
-def preparse(l, depth=0):
+def preparse(l):
+    return preparseh(l)[0]
+
+def preparseh(l, depth=0):
     """
     match parens and set types
     """
@@ -53,11 +56,14 @@ def preparse(l, depth=0):
     for i in range(len(l)):
         if l[i] == '(':
             #print "%sleft: %s" % (" "*depth, ret)
-            middle, remains = preparse(l[i+1:], depth+1)
+            middle, remains = preparseh(l[i+1:], depth+1)
             #print "%smiddle: %s" % (" "*depth, middle)
-            right, moreright = preparse(remains, depth)
+            right, moreright = preparseh(remains, depth)
             #print "%sright: %s" % (" "*depth, right)
-            return ret + [tuple(cons('PARENS', middle))] + right, moreright
+            if middle:
+                return ret + [tuple(cons('PARENS', middle))] + right, moreright
+            else:
+                return ret + right, moreright
         elif l[i] == ')':
             if depth == 0:
                 Exception("preparse: unexpected parens")
@@ -77,35 +83,44 @@ def preparse(l, depth=0):
         raise Exception("preparse: unmatched parens")
     return ret, []
 
+def lastindex(l, item):
+    for i in range(len(l)-1, -1, -1):
+        if l[i] == item:
+            return i
+    return -1
+
 def parse(l):
     #print l
     if not l or len(l) == 0:
-        return []
+        return tuple()
     if len(l) == 1:
         if car(car(l)) in ('VAR', 'NUM'):
             return ('ATOM', car(l))
         elif car(car(l)) == 'PARENS':
             return parse(cdr(car(l)))
+        elif car(car(l)) == 'NOT':
+            # special case of NOT-NOT; already parsed
+            return l[0]
         else:
             raise Exception("parse error: %s" % l)
     # ~ has highest priority
     if ('NOTOPER',) in l:
-        i = l.index(('NOTOPER',))
+        i = lastindex(l, ('NOTOPER',))
         if i == len(l)-1:
             raise Exception("parse error: trailing ~")
-        return parse(l[:i] + ('NOT', parse(l[i+1])) + l[i+2:])
+        return parse(l[:i] + [('NOT', parse([l[i+1]]))] + l[i+2:])
     # helper function
     def hunt_opers(l, operlist):
         for i in range(1, len(l) - 1):
             if car(l[i]) == 'OPER' and l[i][1] in operlist:
                 left = parse(l[:i])
                 right = parse(l[i+1:])
-                if not car(left) in ['ATOM', 'BINARY', 'NOT']:
+                if not left[0] in ['ATOM', 'BINARY', 'NOT']:
                     raise Exception("parse error: not a binary operand: %s" % 
-                                    left)
-                if not car(right) in ['ATOM', 'BINARY', 'NOT']:
+                                    str(left))
+                if not right[0] in ['ATOM', 'BINARY', 'NOT']:
                     raise Exception("parse error: not a binary operand: %s" %
-                                    right)
+                                    str(right))
                 return ('BINARY', l[i][1], left, right)
     for operlist in binaryoper_priority:
         match = hunt_opers(l, operlist)
@@ -125,8 +140,6 @@ def schemify(ast):
 
 def test_parse():
     """
-    ()
-    ~~1
     """
 
 def tokenize(s):
@@ -162,6 +175,9 @@ def tokenize(s):
     raise Exception("tokenization error: %s" % s)
 
 def execute(ast, t):
+    if ast == tuple():
+        # null machine evals to 0; machine should have no null sub-expressions
+        return 0
     if car(ast) == 'ATOM':
         if car(ast[1]) == 'VAR':
             return t
@@ -196,9 +212,75 @@ def execute(ast, t):
             return left & right
     raise Exception("execute: unexpected node: %s" % car(ast))
 
-
+def strmachine(ast):
+    if ast == tuple():
+        return ""
+    if car(ast) == 'ATOM':
+        if car(ast[1]) == 'VAR':
+            return "t"
+        if car(ast[1]) == 'NUM':
+            return "%d" % ast[1][1]
+    elif car(ast) == 'NOT':
+        return "(~ %s)" % strmachine(ast[1])
+    elif car(ast) == 'BINARY':
+        # UGH
+        oper, left, right = ast[1:4]
+        left = strmachine(ast[2])
+        right = strmachine(ast[3])
+        oper = oper.replace('r','>>').replace('l','<<')
+        return "(%s %s %s)" % (oper, left, right)
+    raise Exception("execute: unexpected node: %s" % car(ast))
+    
 # ==============================
+def test_preparse():
+    """
+    0
+    ()()()()()()
+    (((((())))))
+    (1 + (2 >> 3) / 5)
+    """
+    print "------ test_preparse"
+    assert preparse(tokenize("0")) == [('NUM', 0)]
+    assert preparse(tokenize("()()()()()()")) == []
+    assert preparse(tokenize("(((((())))))")) == []
+    assert preparse(tokenize("(1 + (2 >> 3) / 5)")) == \
+        [('PARENS', ('NUM', 1), ('OPER', '+'), ('PARENS', ('NUM', 2), ('OPER', 'r'), ('NUM', 3)), ('OPER', '/'), ('NUM', 5))]
+    print "\tall passed!"
+
+def test_parse():
+    """
+    0
+    ()
+    ~~1
+    1 + 2 * 3 ^ 5 | 6 & 7 >> 8 + ~ 9
+    1 + ~ 3
+    anti: 1 (+ 3)
+    """
+    print "------ test_parse"
+    assert parse(preparse(tokenize("()"))) == tuple()
+    assert parse(preparse(tokenize("0"))) == ('ATOM', ('NUM', 0))
+    assert parse(preparse(tokenize("~1"))) == ('NOT', ('ATOM', ('NUM', 1)))
+    assert parse(preparse(tokenize("~~1"))) == ('NOT', ('NOT', ('ATOM', ('NUM', 1))))
+    assert parse(preparse(tokenize("~~t"))) == ('NOT', ('NOT', ('ATOM', ('VAR',))))
+    assert parse(preparse(tokenize("1<<1"))) == \
+        ('BINARY', 'l', ('ATOM', ('NUM', 1)), ('ATOM', ('NUM', 1)))
+    assert parse(preparse(tokenize("1^1"))) == \
+        ('BINARY', '^', ('ATOM', ('NUM', 1)), ('ATOM', ('NUM', 1)))
+    assert parse(preparse(tokenize("1 + ~ 3"))) == \
+        ('BINARY', '+', ('ATOM', ('NUM', 1)), ('NOT', ('ATOM', ('NUM', 3))))
+    try:
+        assert parse(preparse(tokenize("1 (+ 3)"))) == "SHOULD FAIL"
+    except:
+        pass
+    try:
+        assert parse(preparse(tokenize("1 ~"))) == "SHOULD FAIL"
+    except:
+        pass
+    assert strmachine(parse(preparse(tokenize("1 + 2 * 3 ^ 5 | 6 & 7 >> 8 + ~ 9")))) == \
+        "(| (^ (+ 1 (* 2 3)) 5) (& 6 (>> 7 (+ 8 (~ 9)))))"
+
 def test_tokenize():
+    print "------ test_tokenize"
     assert tokenize("(t>>4)") == ['(','t','r',4,')']
     assert tokenize("t") == ['t']
     assert tokenize("i") == ['t']
@@ -232,4 +314,5 @@ def test_tokenize():
         assert tokenize("x123") is "TOKENIZE ERROR"
     except:
         pass
+    print "\tall passed!"
 

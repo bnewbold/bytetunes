@@ -29,6 +29,9 @@ bytetros?
 original (to me):
 echo "main(i){for(i=0;;i++)putchar((i*(i>>8|i>>9)&46&i>>8)^(i&i>>13|i>>6));}" | gcc -x c - && ./a.out | aplay
 
+favorite:
+    (t*9&t>>4|t*5&t>>7|t*3&t/1024)-1
+
 from http://countercomplex.blogspot.de/2011/10/algorithmic-symphonies-from-one-line-of.html
 
     main(t){for(t=0;;t++)putchar(t*(((t>>12)|(t>>8))&(63&(t>>4))));} 
