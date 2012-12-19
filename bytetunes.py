@@ -4,6 +4,8 @@ from expr import *
 
 import sys
 
+DEFAULT = "(t>>6)&(2*t)&(t>>1)"
+
 def play(s):
     machine = parse(preparse(tokenize(s)))
     t = 0
@@ -13,11 +15,16 @@ def play(s):
 
 def main():
     if len(sys.argv) <= 1:
-        play("(t>>6)&(2*t)&(t>>1)")
+        play(DEFAULT)
     elif sys.argv[1] == '--test':
         test_tokenize()
         test_preparse()
         test_parse()
+    elif sys.argv[1] == '--parse':
+        if len(sys.argv) < 3:
+            print strmachine(parse(preparse(tokenize(DEFAULT))))
+        else:
+            print strmachine(parse(preparse(tokenize(sys.argv[2]))))
     else:
         play(sys.argv[1])
 
