@@ -47,3 +47,17 @@ compile: optionally remove trivial identities ("~~") and evaluate static express
 
 general method:
 grammar parser, returns ast
+
+----------
+
+MACHINE:
+
+struct { char type, char cval, int ival, node* lval, node* rval } node
+
+types:
+    n number
+    v variable
+    b binary operator
+    u unary operator
+
+SEXP 
