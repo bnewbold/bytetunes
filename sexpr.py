@@ -128,7 +128,7 @@ def execute(sexpr, t):
         if sexpr['cval'] == 'l':
             return execute(sexpr['lval'], t) << execute(sexpr['rval'], t)
         raise Exception("unexpected binary: %s" % sexpr['cval'])
-    pass
+    raise Exception("execute: unknown operator: %s" % sexpr['type'])
 
 def play(machine):
     t = 0
