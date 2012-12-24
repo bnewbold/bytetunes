@@ -18,7 +18,7 @@ struct node {
 
 int isdigit(char);
 void print_sexpr(struct node *sexpr);
-unsigned int execute(struct node *sexpr, unsigned int t);
+int execute(struct node *sexpr, unsigned int t);
 int find_split(char* s, int start, int end);
 struct node *parse(char *s, int start, int end);
 struct node *new_node(char type, char cval, unsigned int ival,
@@ -37,7 +37,7 @@ char inbuffer[256];
 int sstrlen(char *s, int max);
 
 HardwareTimer gen(1);
-HardwareTimer pwm(3);
+HardwareTimer pwm(4);
 
 int counter = 0;
 
@@ -59,20 +59,21 @@ unsigned char sine_lookup[] __FLASH__ = {127, 139, 151, 163, 175, 186, 197, 207,
 void setup() {
     int i;
     pinMode(PWM_OUT_PIN, OUTPUT);
+    pinMode(31, OUTPUT);
     pinMode(33, OUTPUT);
-    pinMode(3, PWM);
+    pinMode(16, PWM);
     pinMode(4, OUTPUT);
     digitalWrite(1, 1);
 
     // initialize with DEFAULT machines
-    machine = parse(DEFAULT, 0, strlen((char*)DEFAULT)-1);
+    machine = parse((char*)DEFAULT, 0, strlen((char*)DEFAULT)-1);
     for (i=0;i<NUMNODE;i++) {
         active_table[i] = node_table[i];
     }
 
     // configure PWM output
     pinMode(PWM_OUT_PIN, OUTPUT);
-    pwm.setChannel3Mode(TIMER_PWM);
+    pwm.setMode(1, TIMER_PWM);
     pwm.setPrescaleFactor(1);
     pwm.setOverflow(255);       // 8-bit resolution
     pwm.setCompare(3, 128);        // initialize to "zero"
@@ -94,6 +95,9 @@ int inbuffer_index;
 
 void loop() {
     int len, i;
+    SerialUSB.println();
+    SerialUSB.println("Currently playing:");
+    print_sexpr(machine);
     SerialUSB.println();
     SerialUSB.println("Input a tune in exact s-expr syntax:");
     SerialUSB.print("> ");
@@ -134,6 +138,7 @@ void loop() {
         active_table[i] = node_table[i];
     }
     machine = new_machine;
+    SerialUSB.println();
     SerialUSB.println("Playing new tune:");
     print_sexpr(machine);
     SerialUSB.println();
@@ -142,13 +147,15 @@ void loop() {
 }
 
 void handler_sample(void) {
-    digitalWrite(4, 1);
-    //pwm.setCompare(4, sin_8bit(counter, 800));  // 10Hz sine wave
-    pwmWrite(3, sin_8bit(counter, 800));
-    // pwm.setCompare(1, execute(counter);
+    digitalWrite(33, 1);
+    digitalWrite(31, 1);
+    //pwm.setCompare(1, sin_8bit(counter, 799));  // 10Hz sine wave
+    pwm.setCompare(1, (0x000000FF & execute(machine, counter)));
+    //pwmWrite(16, sin_8bit(counter, 800));
     counter++;
     //SerialUSB.print('.');
-    digitalWrite(4, 0);
+    digitalWrite(33, 0);
+    digitalWrite(31, 0);
 }
 
 unsigned char sin_8bit(int counter, int period) {
@@ -156,8 +163,9 @@ unsigned char sin_8bit(int counter, int period) {
     float t = (counter % period) / (float)period;
     float weight = t - (int)t;
     low = sine_lookup[(int)(63*t)];
-    if (63*t >= 62)
-        high = sine_lookup[0];
+    if (63*t > 62)
+        //high = sine_lookup[0];
+        high = 118;
     else
         high = sine_lookup[1+(int)(63*t)];
 
@@ -243,7 +251,7 @@ struct node *parse(char *s, int start, int end) {
     return NULL;
 }
 
-unsigned int execute(struct node *sexpr, unsigned int t) {
+int execute(struct node *sexpr, unsigned int t) {
     switch (sexpr->type) {
     // atom
     case 'v':
