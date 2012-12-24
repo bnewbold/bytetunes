@@ -1,0 +1,79 @@
+
+### Circuit
+
+http://www.uchobby.com/index.php/2008/01/08/arduino-audio-dac-options/
+    
+    47kohm resistor off pin, then 0.01uF cap to ground and speaker in parallel,
+    optionally with a pot or pair of resistors (sum=100khom?) acting as a
+    voltage divider for the headphones.
+
+### MCU configuration
+
+Set interrupt timer for 8KHz.
+
+Set PWM period to 255, prescaler to 1; this gives a period of 3.54
+microseconds, or about 282KHz. Further filtering may not even be needed?
+
+### Example Code
+
+#define PWM_OUT_PIN     BOARD_LED_PIN
+
+HardwareTimer pwm(1);
+HardwareTimer gen(1);
+
+uint8_t[64] sine_lookup;
+int counter = 0;
+
+/*
+from math import sin
+count = 64
+print [int(127+127*sin(3.14159268*2*i/count)) for i in range(count)]
+*/
+unsigned char sine_lookup[] __FLASH__ = {127, 139, 151, 163, 175, 186, 197, 207, 216,
+    225, 232, 239, 244, 248, 251, 253, 254, 253, 251, 248, 244, 239, 232, 225,
+    216, 207, 197, 186, 175, 163, 151, 139, 126, 114, 102, 90, 78, 67, 56, 46,
+    37, 28, 21, 14, 9, 5, 2, 0, 0, 0, 2, 5, 9, 14, 21, 28, 37, 46, 56, 67, 78,
+    90, 102, 114};
+
+void setup() {
+    // configure PWM output
+    pinMode(PWM_OUT_PIN, OUTPUT);
+    pwm.setChannel1Mode(TIMER_PWM);
+    pwm.setPrescaleFactor(1);
+    pwm.setOverflow(255);       // 8-bit resolution
+    pwm.setCompare(1, 128);        // initialize to "zero"
+
+    // configure 8KHz ticker and interrupt handler
+    gen.pause();
+    gen.setPeriod(125);         // 8Khz
+    gen.setChannel1Mode(TIMER_OUTPUT_COMPARE);
+    gen.refesh()
+
+
+    // get things started!
+    gen.resume()
+}
+
+void loop() {
+    // USB serial interaction code goes here...
+}
+
+void handler_sample(void) {
+    pwm.setCompare(1, sin_8bit(counter, 800));  // 100Hz sine wave
+    // pwm.setCompare(1, execute(counter);
+    counter++;
+}
+
+uint8_t sin_8bit(int counter, int period) {
+    int high, low;
+    float t = (t % period) / (float)period;
+    float weight = t - (t % 1);
+    low = sine_lookup[63*t];
+    if (63*t >= )
+        high = sine_lookup[0];
+    else
+        high = sine_lookup[1+63*t];
+
+    return (int)(low * weight + high * (1.0 - weight)):
+}
+
