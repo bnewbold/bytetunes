@@ -26,10 +26,39 @@ void test();
 static struct node node_table[NUMNODE];
 static int newest_node = 0;
 
+char inbuffer[256];
+
+int sstrlen(char *s, int max);
+
+int sstrlen(char *s, int max) {
+    int i;
+    for (i=0; i<max; i++) {
+        if (s[i] == '\n' || s[i] == '\0') {
+            return i+1;
+        }
+    }
+    return max;
+}
 
 void main() {
+    int len;
     //test();
-    play(parse(DEFAULT, 0, strlen(DEFAULT)-1));
+    if (stderr == stdout) {
+        printf("You are expected to send stderr and stdout different ways.\n");
+        exit(-1);
+    }
+    while (1) {
+        fprintf(stderr, "Input a tune in exact s-expr syntax:\n");
+        fprintf(stderr, "> ");
+        fgets(inbuffer, 256, stdin);    
+        len = sstrlen(inbuffer, 256);
+        if (len == 256 || len < 1)
+            fprintf(stderr, "Invalid input!\n");
+        else
+            break;
+    }
+    play(parse(inbuffer, 0, len-2));
+    //play(parse(DEFAULT, 0, strlen(DEFAULT)-1));
 };
 
 void test() {
@@ -82,7 +111,7 @@ struct node *parse(char *s, int start, int end) {
     }
 
     // various binary operators
-    if ( strchr("*/%+-&^|<>", s[start+1]) != NULL) {
+    if ( strchr("*/%+-&^|<>%", s[start+1]) != NULL) {
         cval = s[start+1];
         offset = 3;
         if (cval == '<' && s[start+2] == '<' && s[start+3] == ' ') {
@@ -137,6 +166,8 @@ unsigned int execute(struct node *sexpr, unsigned int t) {
             return execute(sexpr->lval, t) & execute(sexpr->rval, t);
         case '|':
             return execute(sexpr->lval, t) | execute(sexpr->rval, t);
+        case '%':
+            return execute(sexpr->lval, t) % execute(sexpr->rval, t);
         case 'r':
             return execute(sexpr->lval, t) >> execute(sexpr->rval, t);
         case 'l':
