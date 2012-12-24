@@ -9,13 +9,24 @@
 
 players for bytebeat music.
 
+./bin/bytetunes.sh is a shell wrapper to compile C tunes (with gcc) and play
+    them back (with aplay)
+
+./bytetunes.py is a python program to parse and play (to stdout/aplay) tunes in
+    "normal" C-syntax 
+
+./bytetunes.cpp is an interactive microcontroller program (for libmaple and ARM
+    Cortex-M3 controllers) with PWM audio output that parses and plays tunes in
+    limited S-EXPR syntax
+
 ### Example Tunes
 
-the original (to me):
+The original (to me) UNIX one-liner:
 
     echo "main(i){for(i=0;;i++)putchar((i*(i>>8|i>>9)&46&i>>8)^(i&i>>13|i>>6));}" | gcc -x c - && ./a.out | aplay
 
-my favorite (thus far):
+My favorite tune (thus far):
+
     (t*9&t>>4|t*5&t>>7|t*3&t/1024)-1
 
 ### References
@@ -39,10 +50,9 @@ commentary, other:
     http://countercomplex.blogspot.de/2011/06/16-byte-frontier-extreme-results-from.html
     http://canonical.org/~kragen/bytebeat/
     http://pouet.net/topic.php?which=8357
-    "Discovering novel computer music techniques by exploring the space of short computer programs"
-        http://arxiv.org/abs/1112.1368
     http://royal-paw.com/2012/01/bytebeats-in-c-and-python-generative-symphonies-from-extremely-small-programs/
     http://www.metafilter.com/111959/Todays-formulaic-music
+    http://arxiv.org/abs/1112.1368 "Discovering novel computer music techniques by exploring the space of short computer programs"
 
 similar:
     http://yaxu.org/haskell-hack/

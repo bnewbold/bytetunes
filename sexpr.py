@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
-This code is intentionally very c-style
+This code is intentionally very c-style; it was written to make later
+development of microcontroller code faster.
 """
 
 import sys
@@ -91,9 +92,11 @@ def strmachine(sexpr):
             oper = '<'
             if sexpr['cval'] == 'r':
                 oper = '>'
-            return "(%s%s %s %s)" % (oper, oper, strmachine(sexpr['lval']), strmachine(sexpr['rval']))
+            return "(%s%s %s %s)" % (oper, oper, strmachine(sexpr['lval']),
+                                     strmachine(sexpr['rval']))
         elif sexpr['cval'] in '+-*/^|&':
-            return "(%s %s %s)" % (sexpr['cval'], strmachine(sexpr['lval']), strmachine(sexpr['rval']))
+            return "(%s %s %s)" % (sexpr['cval'], strmachine(sexpr['lval']),
+                                   strmachine(sexpr['rval']))
         raise Exception("unexpected binary: %s" % sexpr['cval'])
 
 def execute(sexpr, t):
@@ -146,7 +149,8 @@ def test_parse():
         DEFAULT,
     ]
     for t in tlist:
-        assert strmachine(ezparse(t)) == t, "\n%s <- GOT\n%s <- EXPECTED" % (strmachine(ezparse(t)), t)
+        assert strmachine(ezparse(t)) == t, \
+            "\n%s <- GOT\n%s <- EXPECTED" % (strmachine(ezparse(t)), t)
     flist = [
         '',
         '~',
@@ -157,7 +161,8 @@ def test_parse():
     ]
     for f in flist:
         try:
-            assert strmachine(ezparse(t)) == "SHOULDFAIL", "%s <- SHOULD HAVE FAILED"% t
+            assert strmachine(ezparse(t)) == "SHOULDFAIL", \
+                "%s <- SHOULD HAVE FAILED"% t
         except:
             pass
     print "passed all parse tests!"
@@ -184,3 +189,4 @@ def main():
 
 if __name__=='__main__':
     main()
+

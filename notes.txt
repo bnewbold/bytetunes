@@ -1,0 +1,25 @@
+
+opcodes
+    note: no unary, increment, decrement
+    arthithmetic: + - * / %
+    bitwise: l r & | ^ ~
+    "<<" is l, ">>" is r
+    all are atoms or binary operators, so recursive compilation to a forth-like?
+    order of ops:
+        ~
+        * / %
+        + -
+        << >>
+        &
+        ^
+        |
+
+final console interface:
+    #hashtag (exact) -> searches twitter/identica for tunes
+    @username (exact) -> parses twitter/identica feed for tunes
+    _1234... -> plays track from memory
+    expression -> compiles and plays expression
+    <else> -> searches greedily for a valid expression; if not found, ignores
+
+bytetros?
+

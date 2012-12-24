@@ -1,2 +1,5 @@
-- handle negative numbers
-- use libc tokenization?
+- all: handle negative numbers (unary '-' operator)
+- bytebeat.cpp: crude line editor: backspace, cursors, filter non-ascii chars
+- bytebeat.cpp: divide by zeros should not totally crash... catch HW exception? check args?
+- better README.html, incl. fritzig circuit
+- more tests

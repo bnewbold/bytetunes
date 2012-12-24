@@ -1,8 +1,14 @@
 #!/usr/bin/env python
 
-from expr import *
+"""
+bytetunes.py 
+
+small CLI wrapper around expr.py for parsing and playing bytebeat tunes.
+"""
 
 import sys
+
+from expr import *
 
 DEFAULT = "(t>>6)&(2*t)&(t>>1)"
 

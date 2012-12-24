@@ -1,5 +1,9 @@
 
 """
+Crude bytetunes parsing and playback routines in python.
+
+Probably has lots of bugs; see TODO file.
+
 PARENS:     '(' (EXPR | ATOM) ')'
 EXPR:       (BINARY | PARENS | NOT)
 BINARY:     (ATOM | EXPR) BOPER (ATOM | EXPR)
@@ -140,6 +144,7 @@ def schemify(ast):
 
 def test_parse():
     """
+    TODO
     """
 
 def tokenize(s):
@@ -244,7 +249,8 @@ def test_preparse():
     assert preparse(tokenize("()()()()()()")) == []
     assert preparse(tokenize("(((((())))))")) == []
     assert preparse(tokenize("(1 + (2 >> 3) / 5)")) == \
-        [('PARENS', ('NUM', 1), ('OPER', '+'), ('PARENS', ('NUM', 2), ('OPER', 'r'), ('NUM', 3)), ('OPER', '/'), ('NUM', 5))]
+        [('PARENS', ('NUM', 1), ('OPER', '+'), ('PARENS', ('NUM', 2),
+         ('OPER', 'r'), ('NUM', 3)), ('OPER', '/'), ('NUM', 5))]
     print "\tall passed!"
 
 def test_parse():
@@ -260,8 +266,10 @@ def test_parse():
     assert parse(preparse(tokenize("()"))) == tuple()
     assert parse(preparse(tokenize("0"))) == ('ATOM', ('NUM', 0))
     assert parse(preparse(tokenize("~1"))) == ('NOT', ('ATOM', ('NUM', 1)))
-    assert parse(preparse(tokenize("~~1"))) == ('NOT', ('NOT', ('ATOM', ('NUM', 1))))
-    assert parse(preparse(tokenize("~~t"))) == ('NOT', ('NOT', ('ATOM', ('VAR',))))
+    assert parse(preparse(tokenize("~~1"))) == \
+        ('NOT', ('NOT', ('ATOM', ('NUM', 1))))
+    assert parse(preparse(tokenize("~~t"))) == \
+        ('NOT', ('NOT', ('ATOM', ('VAR',))))
     assert parse(preparse(tokenize("1<<1"))) == \
         ('BINARY', 'l', ('ATOM', ('NUM', 1)), ('ATOM', ('NUM', 1)))
     assert parse(preparse(tokenize("1^1"))) == \
@@ -276,8 +284,10 @@ def test_parse():
         assert parse(preparse(tokenize("1 ~"))) == "SHOULD FAIL"
     except:
         pass
-    assert strmachine(parse(preparse(tokenize("1 + 2 * 3 ^ 5 | 6 & 7 >> 8 + ~ 9")))) == \
+    assert strmachine(parse(preparse(tokenize(
+        "1 + 2 * 3 ^ 5 | 6 & 7 >> 8 + ~ 9")))) == \
         "(| (^ (+ 1 (* 2 3)) 5) (& 6 (>> 7 (+ 8 (~ 9)))))"
+    print "\tall passed!"
 
 def test_tokenize():
     print "------ test_tokenize"
